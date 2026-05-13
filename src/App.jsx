@@ -8,8 +8,9 @@ import {
   doc,
   onSnapshot,
   query,
-  serverTimestamp,
+  setDoc,
   updateDoc,
+  where,
 } from 'firebase/firestore'
 import CreateRidePage from './pages/CreateRidePage'
 import DashboardPage from './pages/DashboardPage'
@@ -17,33 +18,114 @@ import { auth, db } from './firebase'
 import LoginPage from './pages/LoginPage'
 import ViewRidePage from './pages/ViewRidePage'
 import LoadingOverlay from './components/LoadingOverlay'
-import { formatTimeForStorage } from './utils/time'
+import { formatTimeForStorage, formatDateForStorage } from './utils/time'
 import './App.css'
+
+// Admin email addresses - add your admin emails here
+const ADMIN_EMAILS = ['averycab@gmail.com']
+const ADMIN_EMAILS_NORMALIZED = ADMIN_EMAILS.map((email) => String(email).toLowerCase())
+
+const normalizeToUsPhone = (value) => {
+  const digits = String(value || '').replace(/\D/g, '')
+  const withoutCountryCode = digits.startsWith('1') ? digits.slice(1) : digits
+  const phoneDigits = withoutCountryCode.slice(0, 10)
+  return phoneDigits ? `+1${phoneDigits}` : ''
+}
+
+const normalizeLeg = (legValue) => ({
+  date: String(legValue?.date || '').trim(),
+  time: formatTimeForStorage(legValue?.time),
+  pickup: String(legValue?.pickup || '').trim(),
+  dropoff: String(legValue?.dropoff || '').trim(),
+})
+
+const buildRidePayload = (rideData) => {
+  const fallbackLegA = {
+    date: rideData.date,
+    time: rideData.time,
+    pickup: rideData.pickup,
+    dropoff: rideData.dropoff,
+  }
+  const legA = normalizeLeg(rideData.legA || fallbackLegA)
+  const legB = normalizeLeg(rideData.legB)
+
+  return {
+    ...rideData,
+    phone: normalizeToUsPhone(rideData.phone),
+    phone2: normalizeToUsPhone(rideData.phone2),
+    legA,
+    legB,
+    // Keep legacy flat fields so existing pages and reports remain compatible.
+    date: legA.date,
+    time: legA.time,
+    pickup: legA.pickup,
+    dropoff: legB.dropoff || legA.dropoff,
+  }
+}
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAuthReady, setIsAuthReady] = useState(false)
   const [isRidesLoading, setIsRidesLoading] = useState(false)
   const [rides, setRides] = useState([])
+  const [currentUser, setCurrentUser] = useState(null)
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsAuthenticated(Boolean(user))
       setIsRidesLoading(Boolean(user))
+      if (user) {
+        setCurrentUser({ uid: user.uid, email: user.email })
+        await setDoc(
+          doc(db, 'users', user.uid),
+          {
+            uid: user.uid,
+            email: user.email || '',
+            updatedAt: formatDateForStorage(),
+          },
+          { merge: true }
+        )
+      } else {
+        setCurrentUser(null)
+      }
       setIsAuthReady(true)
     })
 
     return unsubscribe
   }, [])
 
+  const isAdmin =
+    currentUser && ADMIN_EMAILS_NORMALIZED.includes(String(currentUser.email || '').toLowerCase())
+
+  // Fetch all users
   useEffect(() => {
-    if (!isAuthenticated) {
+    const usersQuery = query(collection(db, 'users'))
+    const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+      const allUsers = snapshot.docs.map((userDoc) => ({
+        uid: userDoc.data().uid || userDoc.id,
+        email: userDoc.data().email || '',
+        name: userDoc.data().name || userDoc.data().displayName || userDoc.data().fullName || '',
+      }))
+      setUsers(allUsers)
+    })
+
+    return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) {
       setRides([])
       setIsRidesLoading(false)
       return undefined
     }
 
-    const ridesQuery = query(collection(db, 'booking'))
+    // Build query - filter by userId unless user is admin
+    const queryConstraints = []
+    if (!isAdmin) {
+      queryConstraints.push(where('userId', '==', currentUser.uid))
+    }
+    const ridesQuery = query(collection(db, 'booking'), ...queryConstraints)
 
     const unsubscribe = onSnapshot(ridesQuery, (snapshot) => {
       const nextRides = snapshot.docs.map((rideDoc) => ({
@@ -55,7 +137,7 @@ const App = () => {
     })
 
     return unsubscribe
-  }, [isAuthenticated])
+  }, [isAuthenticated, currentUser, isAdmin])
 
   const handleLogin = async ({ email, password }) => {
     if (!email || !password) {
@@ -89,31 +171,45 @@ const App = () => {
 
   const handleUpdateRide = async (updatedRide) => {
     const { id, ...payload } = updatedRide
+    const normalizedPayload = buildRidePayload(payload)
     await updateDoc(doc(db, 'booking', id), {
-      ...payload,
-      time: formatTimeForStorage(payload.time),
-      updatedAt: serverTimestamp(),
+      ...normalizedPayload,
+      userId: currentUser.uid,
+      updatedAt: formatDateForStorage(),
     })
   }
+
+ 
 
   const handleDeleteRide = async (id) => {
     await deleteDoc(doc(db, 'booking', id))
   }
 
-  const handleMarkRideDone = async (id) => {
+  const handleMarkRideDone = async (id, amount) => {
     await updateDoc(doc(db, 'booking', id), {
       status: 'Completed',
-      updatedAt: serverTimestamp(),
+      payRate: amount || 'N/A',
+      updatedAt: formatDateForStorage(),
     })
   }
 
   const handleCreateRide = async (newRide) => {
-    await addDoc(collection(db, 'booking'), {
-      ...newRide,
-      time: formatTimeForStorage(newRide.time),
+    const { selectedUserId, ...rideData } = newRide
+    const normalizedPayload = buildRidePayload(rideData)
+    // Use selectedUserId if provided (admin creating for another user), otherwise use current user
+    const userId = selectedUserId || currentUser.uid
+
+    const docRef = await addDoc(collection(db, 'booking'), {
+      ...normalizedPayload,
       status: 'Pending',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      userId: userId,
+      createdAt: formatDateForStorage(),
+      updatedAt: formatDateForStorage(),
+    })
+    
+    // Store the document ID as an 'id' field in the document
+    await updateDoc(docRef, {
+      id: docRef.id,
     })
   }
 
@@ -145,6 +241,7 @@ const App = () => {
               onUpdateRide={handleUpdateRide}
               onDeleteRide={handleDeleteRide}
               getStatusClass={getStatusClass}
+              isAdmin={isAdmin}
               isLoading={isRidesLoading}
             />
           ) : (
@@ -156,7 +253,12 @@ const App = () => {
         path="/rides/new"
         element={
           isAuthenticated ? (
-            <CreateRidePage onCreateRide={handleCreateRide} />
+            <CreateRidePage
+              onCreateRide={handleCreateRide}
+              isAdmin={isAdmin}
+              users={users}
+              adminEmails={ADMIN_EMAILS_NORMALIZED}
+            />
           ) : (
             <Navigate to="/login" replace />
           )

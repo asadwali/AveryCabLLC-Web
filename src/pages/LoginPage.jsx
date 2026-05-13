@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Lock, Mail } from 'lucide-react'
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react'
 import LoadingOverlay from '../components/LoadingOverlay'
 
 const LoginPage = ({ onLogin }) => {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [toast, setToast] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -31,10 +32,13 @@ const LoginPage = ({ onLogin }) => {
       {isSubmitting && (
         <LoadingOverlay message="Signing you in" subMessage="Checking credentials..." />
       )}
+      <div>
+
+      </div>
       <div className="auth-top-brand">
         <img src="/logo.jpeg" alt="Avery Cab logo" className="auth-logo" />
         <p className="auth-company">Avery Cab LLC</p>
-      </div>
+      
 
       <section className="auth-card">
         <div className="brand-block">
@@ -61,17 +65,25 @@ const LoginPage = ({ onLogin }) => {
           </div>
 
           <label htmlFor="password">Password</label>
-          <div className="input-wrap">
+          <div className="input-wrap password-input-wrap">
             <Lock size={18} />
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
               required
             />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           <button type="submit" className="btn btn-primary full-width" disabled={isSubmitting}>
@@ -79,6 +91,15 @@ const LoginPage = ({ onLogin }) => {
           </button>
         </form>
       </section>
+</div>
+      <footer className="auth-footer">
+        <p>
+          Designed and Developed by{' '}
+          <a href="https://www.itechiasolutions.com" target="_blank" rel="noopener noreferrer">
+            ITechia Solutions
+          </a>
+        </p>
+      </footer>
     </main>
   )
 }
