@@ -160,24 +160,31 @@ const ViewRidePage = ({ rides, getStatusClass, onMarkRideDone, isLoading = false
           </Link>
           {ride.status !== 'Completed' && (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '6px', padding: '0 10px', backgroundColor: '#f9f9f9' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '16px', marginRight: '5px', color: '#333' }}>$</span>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  step="0.01"
-                  min="0"
-                  style={{
-                    border: 'none',
-                    padding: '8px 0',
-                    fontSize: '14px',
-                    width: '120px',
-                    backgroundColor: 'transparent',
-                    outline: 'none',
-                  }}
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '6px', padding: '0 10px', backgroundColor: '#f9f9f9' }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '16px', marginRight: '5px', color: '#333' }}>$</span>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    step="0.01"
+                    min="0"
+                    style={{
+                      border: 'none',
+                      padding: '8px 0',
+                      fontSize: '14px',
+                      width: '120px',
+                      backgroundColor: 'transparent',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+                {amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0 && (
+                  <p style={{ fontSize: '11px', color: '#666', margin: 0, paddingLeft: '2px' }}>
+                    +6.35% tax → <strong>${(parseFloat(amount) * 1.0635).toFixed(2)}</strong>
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -191,7 +198,8 @@ const ViewRidePage = ({ rides, getStatusClass, onMarkRideDone, isLoading = false
                   setIsMarkingDone(true)
 
                   try {
-                    await onMarkRideDone(ride.id, amount)
+                    const amountWithTax = (parseFloat(amount) * 1.0635).toFixed(2)
+                    await onMarkRideDone(ride.id, amountWithTax)
                     setAmount('')
                   } finally {
                     setIsMarkingDone(false)

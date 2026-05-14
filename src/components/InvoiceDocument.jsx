@@ -51,8 +51,8 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
   const invoiceRef = useRef(null)
   const [isExporting, setIsExporting] = useState(false)
   const totalAmount = rides.reduce((sum, ride) => sum + getNumericAmount(ride.payRate), 0)
-  const taxAmount = totalAmount * TAX_RATE
-  const grandTotal = totalAmount + taxAmount
+  // const taxAmount = totalAmount * TAX_RATE
+  // const grandTotal = totalAmount + taxAmount
   const generatedOn = new Date().toLocaleString()
 
   const handleDownload = async () => {
@@ -137,13 +137,14 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
                     const legB = getLeg(ride, 'legB')
                     const phone = formatUSPhone(ride.phone)
                     const phone2 = formatUSPhone(ride.phone2)
+                    const rideNumber = index + 1
 
                     return (
                       <tr key={ride.id || index}>
                         <td>
                           <div className="ride-meta-stack">
                             <p className="ride-meta-title">{ride.fullName || '-'}</p>
-                            <p className="ride-meta-sub">Ride #{ride.id || index + 1}</p>
+                            <p className="ride-meta-sub">Ride #{rideNumber}</p>
                             {phone && (
                               <p className="ride-meta-sub ride-meta-with-icon">
                                 <Phone size={13} strokeWidth={2.2} aria-hidden="true" />
@@ -230,18 +231,18 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
             </section> */}
 
             <div className="invoice-totals invoice-totals-right">
-              <div className="invoice-totals-row">
+              <div className="invoice-totals-row invoice-grand-total">
                 <span>Total Amount</span>
                 <span>{formatCurrency(totalAmount)}</span>
               </div>
-              <div className="invoice-totals-row">
+              {/* <div className="invoice-totals-row">
                 <span>Tax</span>
                 <span>{formatCurrency(taxAmount)}</span>
-              </div>
-              <div className="invoice-totals-row invoice-grand-total">
+              </div> */}
+              {/* <div className="invoice-totals-row invoice-grand-total">
                 <span>Grand Total</span>
                 <strong>{formatCurrency(grandTotal)}</strong>
-              </div>
+              </div> */}
             </div>
           </div>
 

@@ -140,21 +140,7 @@ const CreateRidePage = ({ onCreateRide, isAdmin, users = [], adminEmails = [] })
               </div>
             </label>
           </div>
-          <div className="modal-row-2">
-            <label>
-              Phone 2 <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional)</span>
-              <div className="phone-input-wrap">
-                <span className="phone-prefix">+1</span>
-                <input
-                  type="tel"
-                  name="phone2"
-                  value={formatUsPhoneInput(formData.phone2)}
-                  onChange={handlePhone2Change}
-                  placeholder="(555) 987-6543"
-                />
-              </div>
-            </label>
-          </div>
+      
           <div className="leg-grid">
             <section className="leg-card" aria-label="Leg A locations">
               <h3>Leg A</h3>
@@ -197,7 +183,7 @@ const CreateRidePage = ({ onCreateRide, isAdmin, users = [], adminEmails = [] })
             </section>
 
             <section className="leg-card" aria-label="Leg B locations">
-              <h3>Leg B</h3>
+              <h3>Leg B <span style={{ fontWeight: 'normal', fontSize: '0.8em', color: 'var(--color-text-muted, #888)' }}>(optional)</span></h3>
               <div className="modal-row-2">
                 <label>
                   Date
@@ -205,7 +191,6 @@ const CreateRidePage = ({ onCreateRide, isAdmin, users = [], adminEmails = [] })
                     type="date"
                     value={formData.legB.date}
                     onChange={(event) => handleLegChange('legB', 'date', event.target.value)}
-                    required
                   />
                 </label>
                 <label>
@@ -214,7 +199,6 @@ const CreateRidePage = ({ onCreateRide, isAdmin, users = [], adminEmails = [] })
                     type="time"
                     value={formData.legB.time}
                     onChange={(event) => handleLegChange('legB', 'time', event.target.value)}
-                    required
                   />
                 </label>
               </div>
@@ -223,7 +207,6 @@ const CreateRidePage = ({ onCreateRide, isAdmin, users = [], adminEmails = [] })
                 <input
                   value={formData.legB.pickup}
                   onChange={(event) => handleLegChange('legB', 'pickup', event.target.value)}
-                  required
                 />
               </label>
               <label>
@@ -231,7 +214,6 @@ const CreateRidePage = ({ onCreateRide, isAdmin, users = [], adminEmails = [] })
                 <input
                   value={formData.legB.dropoff}
                   onChange={(event) => handleLegChange('legB', 'dropoff', event.target.value)}
-                  required
                 />
               </label>
             </section>

@@ -362,11 +362,11 @@ const DashboardPage = ({
           <div className="ride-list-wrap">
             {paginatedRides.length > 0 ? (
               <div className="ride-list">
-                {paginatedRides.map((ride) => (
+                {paginatedRides.map((ride, index) => (
                   <article key={ride.id} className="ride-item-card">
                     <div className="ride-item-top">
                       <div>
-                        <p className="ride-id">Ride #{ride.id}</p>
+                        <p className="ride-id">Ride #{startIndex + index + 1}</p>
                         <div className="ride-name-row">
                           <h3 className="ride-name">{ride.fullName}</h3>
                           <span className="ride-phone-inline">{formatUsPhoneDisplay(ride.phone)}</span>
@@ -468,12 +468,12 @@ const DashboardPage = ({
               </thead>
               <tbody>
                 {paginatedRides.length > 0 ? (
-                  paginatedRides.map((ride) => (
+                  paginatedRides.map((ride, index) => (
                     <tr key={ride.id}>
                       <td>
                         <div className="ride-meta-stack">
                           <p className="ride-meta-title">{ride.fullName}</p>
-                          <p className="ride-meta-sub">Ride #{ride.id}</p>
+                          <p className="ride-meta-sub">Ride #{startIndex + index + 1}</p>
                           <p className="ride-meta-sub ride-meta-with-icon">
                             <Phone size={13} strokeWidth={2.2} aria-hidden="true" />
                             <span>{formatUsPhoneDisplay(ride.phone)}</span>
@@ -660,7 +660,7 @@ const DashboardPage = ({
                     <Pencil size={20} />
                   </div>
                   <div>
-                    <p className="modal-hero-eyebrow">Ride #{selectedRide.id}</p>
+                    <p className="modal-hero-eyebrow">Ride #{filteredRides.findIndex(r => r.id === selectedRide.id) + 1}</p>
                     <h3 className="modal-hero-title">Edit Ride</h3>
                   </div>
                   {/* <button type="button" className="modal-close-x" onClick={closeModal}>
