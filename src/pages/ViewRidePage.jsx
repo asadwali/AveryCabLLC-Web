@@ -2,7 +2,7 @@ import { ArrowLeft, CalendarDays, Clock3, MapPin, Phone } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { useState } from 'react'
 import LoadingOverlay from '../components/LoadingOverlay'
-import { formatTimeForDisplay } from '../utils/time'
+import { formatTimeForDisplay, formatDateForDisplay } from '../utils/time'
 
 const getLeg = (ride, legKey) => {
   const fallback = legKey === 'legA' ? { pickup: ride.pickup, dropoff: ride.dropoff } : {}
@@ -86,7 +86,7 @@ const ViewRidePage = ({ rides, getStatusClass, onMarkRideDone, isLoading = false
               <div className="tile-icon"><CalendarDays size={18} /></div>
               <div>
                 <p className="tile-label">Date</p>
-                <p className="tile-value">{ride.date}</p>
+                <p className="tile-value">{formatDateForDisplay(ride.date)}</p>
               </div>
             </div>
             <div className="view-tile">
@@ -122,7 +122,7 @@ const ViewRidePage = ({ rides, getStatusClass, onMarkRideDone, isLoading = false
                 <div className="tile-icon"><CalendarDays size={18} /></div>
                 <div>
                   <p className="tile-label">Date</p>
-                  <p className="tile-value">{legB.date}</p>
+                  <p className="tile-value">{formatDateForDisplay(legB.date)}</p>
                 </div>
               </div>
             )}

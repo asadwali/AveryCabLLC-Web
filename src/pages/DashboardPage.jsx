@@ -3,7 +3,7 @@ import { CalendarDays, Clock3, Eye, MapPin, Pencil, Phone, Plus, Trash2 } from '
 import { Link } from 'react-router-dom'
 import InvoiceDocument from '../components/InvoiceDocument'
 import LoadingOverlay from '../components/LoadingOverlay'
-import { formatTimeForDisplay, formatTimeForInput } from '../utils/time'
+import { formatTimeForDisplay, formatTimeForInput, formatDateForDisplay } from '../utils/time'
 
 const MONTH_MAP = {
   January: 0,
@@ -149,10 +149,22 @@ const DashboardPage = ({
   const [isProcessing, setIsProcessing] = useState(false)
   const [viewMode, setViewMode] = useState('card')
 
+
+  // Sort rides by created date (newest first)
+  // Always sort by createdAt (MM/DD/YYYY)
+  const sortedRides = [...rides].sort((a, b) => {
+    const dateA = parseDateValue(a.createdAt)
+    const dateB = parseDateValue(b.createdAt)
+    if (!dateA && !dateB) return 0
+    if (!dateA) return 1
+    if (!dateB) return -1
+    return dateB - dateA // Newest first
+  })
+
   const statusFilteredRides =
     statusFilter === 'All'
-      ? rides
-      : rides.filter((ride) => (ride.status || 'Pending').toLowerCase() === statusFilter.toLowerCase())
+      ? sortedRides
+      : sortedRides.filter((ride) => (ride.status || 'Pending').toLowerCase() === statusFilter.toLowerCase())
 
   const fromDateValue = parseDateValue(fromDate)
   const toDateValue = parseDateValue(toDate)
@@ -386,7 +398,7 @@ const DashboardPage = ({
                       <section className="ride-leg-card">
                         <p className="ride-leg-title">Leg A</p>
                         <div className="ride-leg-meta-grid">
-                          <p><strong>Date:</strong> {getLeg(ride, 'legA').date || '-'}</p>
+                          <p><strong>Date:</strong> {formatDateForDisplay(getLeg(ride, 'legA').date) || '-'}</p>
                           <p><strong>Time:</strong> {formatTimeForDisplay(getLeg(ride, 'legA').time) || '-'}</p>
                         </div>
                         <div className="leg-route-card">
@@ -404,7 +416,7 @@ const DashboardPage = ({
                       <section className="ride-leg-card">
                         <p className="ride-leg-title">Leg B</p>
                         <div className="ride-leg-meta-grid">
-                          <p><strong>Date:</strong> {getLeg(ride, 'legB').date || '-'}</p>
+                          <p><strong>Date:</strong> {formatDateForDisplay(getLeg(ride, 'legB').date) || '-'}</p>
                           <p><strong>Time:</strong> {formatTimeForDisplay(getLeg(ride, 'legB').time) || '-'}</p>
                         </div>
                         <div className="leg-route-card">
@@ -485,7 +497,7 @@ const DashboardPage = ({
                           <div className="route-compact-datetime">
                             <p className="route-compact-line route-compact-date">
                               <CalendarDays size={13} strokeWidth={2.2} aria-hidden="true" />
-                              <span>{getLeg(ride, 'legA').date || 'N/A'}</span>
+                              <span>{formatDateForDisplay(getLeg(ride, 'legA').date) || 'N/A'}</span>
                             </p>
                             <p className="route-compact-line route-compact-time">
                               <Clock3 size={13} strokeWidth={2.2} aria-hidden="true" />
@@ -509,7 +521,7 @@ const DashboardPage = ({
                           <div className="route-compact-datetime">
                             <p className="route-compact-line route-compact-date">
                               <CalendarDays size={13} strokeWidth={2.2} aria-hidden="true" />
-                              <span>{getLeg(ride, 'legB').date || 'N/A'}</span>
+                              <span>{formatDateForDisplay(getLeg(ride, 'legB').date) || 'N/A'}</span>
                             </p>
                             <p className="route-compact-line route-compact-time">
                               <Clock3 size={13} strokeWidth={2.2} aria-hidden="true" />

@@ -1,7 +1,7 @@
 import { CalendarDays, Clock3, Download, MapPin, Phone, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import logo from '../assets/logo.jpeg'
-import { formatTimeForDisplay } from '../utils/time'
+import { formatTimeForDisplay, formatDateForDisplay } from '../utils/time'
 
 const TAX_RATE = 0.0635
 
@@ -53,7 +53,7 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
   const totalAmount = rides.reduce((sum, ride) => sum + getNumericAmount(ride.payRate), 0)
   // const taxAmount = totalAmount * TAX_RATE
   // const grandTotal = totalAmount + taxAmount
-  const generatedOn = new Date().toLocaleString()
+  const generatedOn = formatDateForDisplay(new Date())
 
   const handleDownload = async () => {
     setIsExporting(true)
@@ -111,8 +111,8 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
 
           <section className="invoice-meta">
             <p><strong>Status Filter:</strong> {statusFilter}</p>
-            <p><strong>From:</strong> {fromDate || 'N/A'}</p>
-            <p><strong>To:</strong> {toDate || 'N/A'}</p>
+            <p><strong>From:</strong> {formatDateForDisplay(fromDate) || 'N/A'}</p>
+            <p><strong>To:</strong> {formatDateForDisplay(toDate) || 'N/A'}</p>
             <p><strong>Total Rides:</strong> {rides.length}</p>
           </section>
 
@@ -164,7 +164,7 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
                             <div className="route-compact-datetime">
                               <p className="route-compact-line route-compact-date">
                                 <CalendarDays size={13} strokeWidth={2.2} aria-hidden="true" />
-                                <span>{legA.date}</span>
+                                <span>{formatDateForDisplay(legA.date)}</span>
                               </p>
                               <p className="route-compact-line route-compact-time">
                                 <Clock3 size={13} strokeWidth={2.2} aria-hidden="true" />
@@ -188,7 +188,7 @@ const InvoiceDocument = ({ rides, fromDate, toDate, statusFilter, onClose }) => 
                             <div className="route-compact-datetime">
                               <p className="route-compact-line route-compact-date">
                                 <CalendarDays size={13} strokeWidth={2.2} aria-hidden="true" />
-                                <span>{legB.date || 'N/A'}</span>
+                                <span>{formatDateForDisplay(legB.date) || 'N/A'}</span>
                               </p>
                               <p className="route-compact-line route-compact-time">
                                 <Clock3 size={13} strokeWidth={2.2} aria-hidden="true" />

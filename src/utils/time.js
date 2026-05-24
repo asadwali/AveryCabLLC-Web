@@ -1,3 +1,31 @@
+// Format date as MM/DD/YYYY for display
+export const formatDateForDisplay = (dateValue) => {
+  if (!dateValue) return ''
+  let dateObj = dateValue instanceof Date ? dateValue : null
+  if (!dateObj) {
+    // Try to parse string
+    dateObj = new Date(dateValue)
+    if (Number.isNaN(dateObj.getTime())) {
+      // Try to parse known formats: "13 May 2026"
+      const match = String(dateValue).match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/)
+      if (match) {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December']
+        const day = Number(match[1])
+        const month = months.findIndex(m => m.toLowerCase() === match[2].toLowerCase())
+        const year = Number(match[3])
+        if (month !== -1) {
+          dateObj = new Date(year, month, day)
+        }
+      }
+    }
+  }
+  if (!dateObj || Number.isNaN(dateObj.getTime())) return String(dateValue)
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0')
+  const dd = String(dateObj.getDate()).padStart(2, '0')
+  const yyyy = dateObj.getFullYear()
+  return `${mm}/${dd}/${yyyy}`
+}
 export const formatTimeForStorage = (timeValue) => {
   if (!timeValue) {
     return ''
